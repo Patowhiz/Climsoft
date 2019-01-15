@@ -5,9 +5,9 @@
             'SetUpTableEntry 
             SetUpTableEntry("stationelement")
 
-            ucrDataLinkElementID.SetTableNameAndField("stationelement", "describedBy")
+            ucrDataLinkElementID.SetTableNameAndField("obselement", "elementId")
             ucrDataLinkElementID.PopulateControl()
-            ucrDataLinkElementID.SetDisplayAndValueMember("describedBy")
+            ucrDataLinkElementID.SetDisplayAndValueMember("elementId")
 
             ucrDataLinkElementID.SetValidationTypeAsNumeric()
             ucrTextHeight.SetValidationTypeAsNumeric()

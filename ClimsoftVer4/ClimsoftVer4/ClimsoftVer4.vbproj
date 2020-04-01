@@ -125,6 +125,18 @@
     <Compile Include="formHourlyNew.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="formMonthlyNew.Designer.vb">
+      <DependentUpon>formMonthlyNew.vb</DependentUpon>
+    </Compile>
+    <Compile Include="formMonthlyNew.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formStationNew.Designer.vb">
+      <DependentUpon>formStationNew.vb</DependentUpon>
+    </Compile>
+    <Compile Include="formStationNew.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="formSynopticCaribbean.Designer.vb">
       <DependentUpon>formSynopticCaribbean.vb</DependentUpon>
     </Compile>
@@ -741,6 +753,12 @@
     <Compile Include="ucrDaySelectorNew.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="ucrDirectionSpeedFlagNew.Designer.vb">
+      <DependentUpon>ucrDirectionSpeedFlagNew.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ucrDirectionSpeedFlagNew.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="ucrElementInformation.Designer.vb">
       <DependentUpon>ucrElementInformation.vb</DependentUpon>
     </Compile>
@@ -975,6 +993,12 @@
     <Compile Include="ucrNewYearSelector.vb">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="ucrStationInformation.Designer.vb">
+      <DependentUpon>ucrStationInformation.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ucrStationInformation.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="ucrStationSelectorNew.Designer.vb">
       <DependentUpon>ucrStationSelectorNew.vb</DependentUpon>
     </Compile>
@@ -1084,6 +1108,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formHourlyNew.resx">
       <DependentUpon>formHourlyNew.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formMonthlyNew.resx">
+      <DependentUpon>formMonthlyNew.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formStationNew.resx">
+      <DependentUpon>formStationNew.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="formSynopticCaribbean.resx">
       <DependentUpon>formSynopticCaribbean.vb</DependentUpon>
@@ -1398,6 +1428,9 @@
     <EmbeddedResource Include="ucrDaySelectorNew.resx">
       <DependentUpon>ucrDaySelectorNew.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ucrDirectionSpeedFlagNew.resx">
+      <DependentUpon>ucrDirectionSpeedFlagNew.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ucrElementInformation.resx">
       <DependentUpon>ucrElementInformation.vb</DependentUpon>
     </EmbeddedResource>
@@ -1517,6 +1550,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ucrPage.resx">
       <DependentUpon>ucrPage.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucrStationInformation.resx">
+      <DependentUpon>ucrStationInformation.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ucrStationSelectorNew.resx">
       <DependentUpon>ucrStationSelectorNew.vb</DependentUpon>

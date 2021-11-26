@@ -72,6 +72,8 @@
         Dim strTranslationsPath As String = String.Concat(Application.StartupPath, "\translations")
         Dim strDbFile As String = "climsofttranslations.db"
         Dim strDbPath As String = IO.Path.Combine(strTranslationsPath, strDbFile)
+
+        'strDbPath = "C:\Users\LENOVO\Source\Repos\Climsoft\ClimsoftVer4\ClimsoftVer4\translations\climsofttranslations.db"
         Return strDbPath
     End Function
 

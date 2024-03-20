@@ -52,8 +52,6 @@ Public Class frmProducts
 
         'translate form controls
         ClsTranslations.TranslateForm(Me)
-        'todo in future this will be done automatically by TranslateForms(Me)
-        ClsTranslations.TranslateComponent(lstViewProducts, True)
 
     End Sub
 
@@ -72,11 +70,10 @@ Public Class frmProducts
         For Each row As DataRow In dataRows
             'add product and prodcut details. List view has 2 columns
             lstViewProducts.Items.Add(New ListViewItem({row.Field(Of String)("productName"),
-                                                       row.Field(Of String)("prDetails")}))
+                                                 ClsTranslations.GetTranslation(row.Field(Of String)("prDetails"))})
+                                                 )
         Next
 
-        'todo in future this will be done automatically by TranslateForms(Me)
-        ClsTranslations.TranslateComponent(lstViewProducts, False)
     End Sub
 
     Private Sub lstvProducts_Click(sender As Object, e As EventArgs) Handles lstViewProducts.Click
@@ -163,7 +160,8 @@ Public Class frmProducts
                ('32', 'Daily Levels', 'Daily Observations', 'Upper Air'),
                ('33', 'Monthly Levels', 'Monthly Summaries', 'Upper Air'),
                ('34', 'Annual Levels', 'Annual Summaries', 'Upper Air'),
-               ('35', 'Seasonal Monthly', 'Monthly Seasonal Summaries', 'Data');"
+               ('35', 'Seasonal Monthly', 'Monthly Seasonal Summaries', 'Data'),
+               ('36', 'Climate Station', 'Data for Climate Station Tool', 'Output for other Applications');"
         Try
             Me.Cursor = Cursors.WaitCursor
             qry0 = New MySql.Data.MySqlClient.MySqlCommand(sql0, clsDataConnection.GetOpenedConnection)
@@ -176,4 +174,7 @@ Public Class frmProducts
         End Try
     End Sub
 
+    Private Sub cboProductsCategory_SystemColorsChanged(sender As Object, e As EventArgs) Handles cboProductsCategory.SystemColorsChanged
+
+    End Sub
 End Class

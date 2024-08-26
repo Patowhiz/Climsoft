@@ -24,6 +24,7 @@ Public Class frmMainMenu
     Private Sub frmMainMenu_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim usrName, usrRole As String
         Dim i, maxRows As Integer
+        'Dim usr As Boolean = False
         usrRole = ""
 
         Try
@@ -34,10 +35,12 @@ Public Class frmMainMenu
             If maxRows > 0 Then
                 For i = 0 To maxRows - 1
                     If dsClimsoftUserRoles.Tables("userRoles").Rows(i).Item("userName") = usrName Then
+                        'usr = True
                         usrRole = dsClimsoftUserRoles.Tables("userRoles").Rows(i).Item("userRole")
                         userGroup = usrRole
                     End If
                 Next i
+
                 'Disable controls that do not correspond to the user role
                 If usrRole = "ClimsoftOperator" Or usrRole = "ClimsoftOperatorSupervisor" Or usrRole = "ClimsoftRainfall" Then
                     mnuAdministration.Enabled = False
@@ -233,18 +236,20 @@ Public Class frmMainMenu
         frmGeneralSettings.Show()
     End Sub
 
-    Private Sub DailyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DailyToolStripMenuItem.Click
+    Private Sub seqHourlyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles seqHourlyToolStripMenuItem.Click
         frmElementSequencerHourly.Show()
-
     End Sub
 
     Private Sub FormHourlyTimeSelectionToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FormHourlyTimeSelectionToolStripMenuItem.Click
         frmHourlyTimeSelection.Show()
     End Sub
 
-    Private Sub HourlyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles HourlyToolStripMenuItem.Click
+    Private Sub seqDailyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles seqDailyToolStripMenuItem.Click
         frmElementSequencerDaily.Show()
+    End Sub
 
+    Private Sub seqHourly2ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles seqHourly2ToolStripMenuItem.Click
+        frmHourly2Sequencer.Show()
     End Sub
 
     Private Sub LanguageTranslationToolStripMenuItem_Click(sender As Object, e As EventArgs)
@@ -319,7 +324,7 @@ Public Class frmMainMenu
         End
     End Sub
 
-    Private Sub MonthlyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles MonthlyToolStripMenuItem.Click
+    Private Sub MonthlyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles seqMonthlyToolStripMenuItem.Click
         frmElementSequencerMonthly.Show()
     End Sub
 

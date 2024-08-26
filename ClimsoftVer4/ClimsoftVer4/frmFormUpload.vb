@@ -124,8 +124,8 @@ Public Class frmFormUpload
             txtDataTransferProgress1.Text = ""
 
             If chkEntrydate.Checked Then
-                bdate = Year(dateFrom.Text) & "-" & Month(dateFrom.Text) & "-" & DateAndTime.Day(dateFrom.Text)
-                edate = Year(dateTo.Text) & "-" & Month(dateTo.Text) & "-" & DateAndTime.Day(dateTo.Text)
+                bdate = Year(dateFrom.Text) & "-" & Month(dateFrom.Text) & "-" & DateAndTime.Day(dateFrom.Text) & " 00:00:00"
+                edate = Year(dateTo.Text) & "-" & Month(dateTo.Text) & "-" & DateAndTime.Day(dateTo.Text) & " 23:59:59"
             End If
 
             ' List the selected stations
@@ -269,6 +269,7 @@ Public Class frmFormUpload
                             hh = dss.Tables(frm_tbl).Rows(n).Item("hh")
 
                         Case "form_daily2"
+
                             yyyy = dss.Tables(frm_tbl).Rows(n).Item("yyyy")
                             mm = dss.Tables(frm_tbl).Rows(n).Item("mm")
                             dd = (m - st) + 1
@@ -280,6 +281,19 @@ Public Class frmFormUpload
                                 'obsperiod = ""
                                 'obsFlag = "M"
                             End If
+
+                        Case "form_hourly2"
+                            yyyy = dss.Tables(frm_tbl).Rows(n).Item("yyyy")
+                            mm = dss.Tables(frm_tbl).Rows(n).Item("mm")
+                            dd = (m - st) + 1
+                            hh = dss.Tables(frm_tbl).Rows(n).Item("hh")
+
+                            'If Not IsDBNull(dss.Tables(frm_tbl).Rows(n).Item(m + (flds * 2))) Then
+                            '    If IsNumeric(dss.Tables(frm_tbl).Rows(n).Item(m + (flds * 2))) Then obsperiod = dss.Tables(frm_tbl).Rows(n).Item(m + (flds * 2))
+                            'Else
+                            '    'obsperiod = ""
+                            '    'obsFlag = "M"
+                            'End If
 
                         Case "form_agro1"
                             elemCode = Strings.Right(dss.Tables(frm_tbl).Columns(m).ColumnName, 3)
@@ -347,6 +361,7 @@ Public Class frmFormUpload
                                 If dss.Tables(frm_tbl).Rows(n).Item(m) = "" Then obsFlag = "M"
                             End If
 
+
                             datetimeGTS(obsDatetime)
 
                             strSQL = "INSERT IGNORE INTO observationInitial(recordedFrom,describedBy,obsDatetime,obsLevel,obsValue,Flag,period,qcStatus,acquisitionType,capturedBy,dataForm) " &
@@ -366,6 +381,7 @@ Public Class frmFormUpload
                                 obsVal = ""
                                 obsFlag = "M"
                             End If
+
 
                             datetimeGTS(obsDatetime)
 
@@ -389,7 +405,10 @@ Public Class frmFormUpload
 
                     datetimeGTS(obsDatetime)
 
-                    ''Generate SQL string for inserting data into observationinitial table
+                    ' Skip records with blank observation values and without flags
+                    If Len(obsVal) = 0 And Len(obsFlag) = 0 Then
+                        Continue For
+                    End If
 
                     frmrec = stnId & "," & elemCode & "," & obsDatetime & "," & obsLevel & "," & obsVal & "," & obsFlag & "," & obsperiod & "," & qcStatus & "," & acquisitionType & "," & capturedBy & "," & dataForm
                     PrintLine(122, frmrec & ",")

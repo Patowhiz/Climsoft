@@ -1697,14 +1697,12 @@ Err:
                         'Exit
                     End If
 
-                    ' Where file prefix is used
+                    ' Check and consider where file prefix is used
                     If Len(flprefix) = 0 Then
+                        ftpfile = Chr(34) & ftpfile & Chr(34)
                         Print(1, ftpmethod & " " & ftpfile & Chr(13) & Chr(10))
-                    Else
+                    Else                    ' Where file prefix is used
                         ' Get input files path
-
-                        'fldr = flder & ftpfile
-                        'fldr = (IO.Path.GetDirectoryName(fldr))
 
                         fldr = (IO.Path.GetDirectoryName(ftpfile))
                         fldr = Strings.Replace(fldr, "\", "/") ' Convert file path dlimiters to FTP structure
@@ -1719,7 +1717,7 @@ Err:
                     End If
                     'Print(1, "bye" & Chr(13) & Chr(10))
 
-                    ' Improved FTP method that uses WinSCP commands and works even in Filezilla servers
+                    ' Improved FTP method that uses WinSCP commands and works even in Filezilla
                     Print(1, "Close" & Chr(13) & Chr(10))
                     Print(1, "Exit" & Chr(13) & Chr(10))
                     FileClose(1)
@@ -1742,6 +1740,7 @@ Err:
             FileClose(1)
             FileClose(3)
 
+            'Log_Errors(ftpfile)
             ' Create batch file to execute FTP script
             'ftpbatch = local_folder & "\ftp_tdcf.bat"
             ftpbatch = local_folder & "\ftp_getFiles.bat"
@@ -1825,6 +1824,7 @@ Err:
                     FileClose(100)
 
                 End If
+                ftpfile = Strings.Replace(ftpfile, Chr(34), "")
 
                 txtInputServer.Text = ftp_host
                 txtInputfolder.Text = flder
@@ -1836,14 +1836,17 @@ Err:
 
 
             Else
-                'txtOutputServer.Text = ftp_host
-                'txtOutputFolder.Text = flder
 
-                '' List the processed output file
-                'lstOutputFiles.Items.Add(System.IO.Path.GetFileName(ftpfile))
-                'txtOutputServer.Refresh()
-                'txtOutputFolder.Refresh()
-                'lstOutputFiles.Refresh()
+                'Log_Errors(ftpfile)
+                txtOutputServer.Text = ftp_host
+                txtOutputFolder.Text = flder
+
+                ' List the processed output file
+                ftpfile = Strings.Replace(ftpfile, Chr(34), "")
+                lstOutputFiles.Items.Add(System.IO.Path.GetFileName(ftpfile))
+                txtOutputServer.Refresh()
+                txtOutputFolder.Refresh()
+                lstOutputFiles.Refresh()
             End If
             FileClose(1)
 
@@ -1856,8 +1859,14 @@ Err:
             FileClose(3)
             FileClose(100)
             FileClose(200)
-            Log_Errors(ex.Message & " at FTP_Call")
-            FTP_Call = False
+
+            'If ex.HResult = -2147024809 Then ' Where double quote (") characters have been to deal with filenames have white spaces
+            '    Return True
+            'Else
+            Log_Errors(ex.HResult & "-" & ex.Message & " at FTP_Call")
+                FTP_Call = False
+            'End If
+
         End Try
     End Function
     Sub Refresh_Folder(flder As String)
@@ -2991,12 +3000,23 @@ Err:
     '    End Try
     'End Sub
     Sub Update_data(sql As String)
+        Dim qry As MySql.Data.MySqlClient.MySqlCommand
+        Dim conndb As New MySql.Data.MySqlClient.MySqlConnection
 
         Try
-            cmd.Connection = dbconn
-            cmd.CommandTimeout = 0
-            cmd.CommandText = sql
-            cmd.ExecuteNonQuery()
+            'cmd.Connection = dbconn
+            'cmd.CommandTimeout = 0
+            'cmd.CommandText = sql
+            'cmd.ExecuteNonQuery()
+
+            conndb.ConnectionString = frmLogin.txtusrpwd.Text
+            conndb.Open()
+            qry = New MySql.Data.MySqlClient.MySqlCommand(sql, conndb)
+            'qry = New MySql.Data.MySqlClient.MySqlCommand(sql, dbconn)
+
+            'Execute query
+            qry.ExecuteNonQuery()
+            conndb.Close()
 
         Catch ex As Exception
             Log_Errors(ex.Message & " at update_data")
@@ -3044,17 +3064,21 @@ Err:
 
         Try
             ' Update Template with 24HR pricipitation total
-            DTto = Date_Time
+            DTto = Date_Time 'Now()
 
             ' Convert from GMT to local observation time
-            DTto = DateAdd("h", Val(txtGMTDiff.Text), DTto)
-            DTfrom = DateAdd("h", -24, DTto)
+            'DTto = DateAdd("h", Val(txtGMTDiff.Text), DTto)
+
+            DTto = DateAdd("h", UTCDiff, DTto)
+            DTfrom = DateAdd("h", -24, DTto)  ' Last 24 hours
 
             ' Convert Dates to SQL struncture
+            DTto = DateAdd("n", -1, DTto)
             endPD = DateAndTime.Year(DTto) & "-" & Format(DateAndTime.Month(DTto), "00") & "-" & Format(DateAndTime.Day(DTto), "00") & " " & Format(DateAndTime.Hour(DTto), "00") & ":" & Format(DateAndTime.Minute(DTto), "00") & ":00"
             stPD = DateAndTime.Year(DTfrom) & "-" & Format(DateAndTime.Month(DTfrom), "00") & "-" & Format(DateAndTime.Day(DTfrom), "00") & " " & Format(DateAndTime.Hour(DTfrom), "00") & ":" & Format(DateAndTime.Minute(DTfrom), "00") & ":00"
 
             sql = "Select sum(obsValue) As Total from observationfinal where recordedFrom = '" & nat_id & "' and describedBy='892' and (obsdatetime between '" & stPD & "' and '" & endPD & "');"
+            'Log_Errors(sql)
             dap = New MySql.Data.MySqlClient.MySqlDataAdapter(sql, dbconn)
             ' Remove timeout requirement
             dap.SelectCommand.CommandTimeout = 0
@@ -3067,11 +3091,36 @@ Err:
 
             Update_data(sql)
 
-            ' Update Template with Regional agreed period
-            ' Cancel by setting value for first replication to ''
-            sql = "update bufr_crex_data set observation = '' where Bufr_Element = 013011 and Climsoft_Element <> '174';"
+            ' Total pricipitation for First and Second replications
+            Dim TPRec1, TPRec2 As Integer
+            Dim DTfrom1, DTfrom2 As Date
+            Dim stPD1, stPD2 As String
 
+            ' Update Template with Time period as per Regional (1st replication) and Local (2nd replication) decisions
+            sql = "select Nos-1 from bufr_crex_data WHERE Bufr_Element = '013011';"
+            dap = New MySql.Data.MySqlClient.MySqlDataAdapter(sql, dbconn)
+            drp.Clear()
+            dap.Fill(drp, "TPRec")
+            TPRec1 = drp.Tables("TPRec").Rows(0).Item(0)
+            TPRec2 = drp.Tables("TPRec").Rows(1).Item(0)
+
+            sql = "Update bufr_crex_data set observation = '-6' where Nos = " & TPRec1 & "; Update bufr_crex_data set observation = '-1' where Nos = " & TPRec2 & ";"
             Update_data(sql)
+
+            ' Total pricipitation for First Replication
+            DTfrom1 = DateAdd("h", -6, DTto) ' Last 6 hours
+            stPD1 = DateAndTime.Year(DTfrom1) & "-" & Format(DateAndTime.Month(DTfrom1), "00") & "-" & Format(DateAndTime.Day(DTfrom1), "00") & " " & Format(DateAndTime.Hour(DTfrom1), "00") & ":" & Format(DateAndTime.Minute(DTfrom1), "00") & ":00"
+            sql = "Select sum(obsValue) As Total from observationfinal where recordedFrom = '" & nat_id & "' and describedBy='892' and (obsdatetime between '" & stPD1 & "' and '" & endPD & "');"
+            'Log_Errors(sql)
+            TPrecip_4SpecifiedPeriod(sql, TPRec1 + 1)
+
+            ' Total pricipitation for Second Replication
+            DTfrom2 = DateAdd("h", -1, DTto) ' Last 1 hour
+            stPD2 = DateAndTime.Year(DTfrom2) & "-" & Format(DateAndTime.Month(DTfrom2), "00") & "-" & Format(DateAndTime.Day(DTfrom2), "00") & " " & Format(DateAndTime.Hour(DTfrom2), "00") & ":" & Format(DateAndTime.Minute(DTfrom2), "00") & ":00"
+
+            sql = "Select sum(obsValue) As Total from observationfinal where recordedFrom = '" & nat_id & "' and describedBy='892' and (obsdatetime between '" & stPD2 & "' and '" & endPD & "');"
+            'Log_Errors(sql)
+            TPrecip_4SpecifiedPeriod(sql, TPRec2 + 1)
 
             ' Update Xtreme temperatures
             DTfrom = DateAdd("h", -12, DTto)
@@ -3111,6 +3160,20 @@ Err:
         End Try
     End Sub
 
+    Sub TPrecip_4SpecifiedPeriod(sql As String, recNo As Integer)
+        Dim Pda As New MySql.Data.MySqlClient.MySqlDataAdapter
+        Dim Prs As New DataSet
+        Dim obs As String
+
+        Pda = New MySql.Data.MySqlClient.MySqlDataAdapter(sql, dbconn)
+        Prs.Clear()
+        Pda.Fill(Prs, "TPP")
+        obs = 0
+        If Not IsDBNull(Prs.Tables("TPP").Rows(0).Item(0)) Then obs = Prs.Tables("TPP").Rows(0).Item(0)
+        sql = "Update bufr_crex_data set observation = " & obs & " where Nos = " & recNo & ";"
+
+        Update_data(sql)
+    End Sub
 
     'Sub Update_specificPeriod_Observations(conw As MySql.Data.MySqlClient.MySqlConnection, Date_Time As String, nat_id As String)
 
@@ -4873,6 +4936,7 @@ Err:
     Function Text_To_DataTable(ByVal path As String, ByVal delimitter As Char, ByVal hdrs As Integer, ByRef flds As Integer, ByRef recs As Long, txtQlfy As String) As DataTable
         Dim source As String = String.Empty
         Dim dt As DataTable = New DataTable
+        Dim validRow As Boolean
         'Dim txtq As String = String.Empty
 
         Try
@@ -4898,18 +4962,20 @@ Err:
 
             For i As Integer = If(False, 1, 0) To rows.Length - 1
                 Dim dr As DataRow = dt.NewRow
-
+                validRow = True
                 For x As Integer = hdrs To rows(i).Split(delimitter).Length - 1
 
                     If x <= dt.Columns.Count - 1 Then
                         dr(x) = rows(i).Split(delimitter)(x)
                         dr(x) = dr(x)
                     Else
-                        Throw New Exception("The number of columns on row " & i + If(False, 0, 1) & " is greater than the amount of columns in the " & If(False, "header.", "first row."))
+                        'Throw New Exception("The number of columns on row " & i + If(False, 0, 1) & " is greater than the amount of columns in the " & If(False, "header.", "first row."))
+                        validRow = False
+                        Exit For
                     End If
                 Next
 
-                dt.Rows.Add(dr)
+                If validRow Then dt.Rows.Add(dr)
             Next
 
             ''dt.Select("column0 = 2024 - 7 - 9 08:00")
@@ -5910,8 +5976,9 @@ Err:
             If GTSEncode(nat_id) And Val(txtPeriod.Text) <> 999 And Kount > 0 And DateAndTime.Minute(dtt) = 0 Then
                 ' Check records due for Encoding
 
-                If DateDiff("h", dttdb, Now()) <= CInt(txtEncode.Text) Then
+                'Log_Errors(DateDiff("h", dttdb, Now()) & " <=  " & CInt(txtEncode.Text))
 
+                If DateDiff("h", dttdb, Now()) <= CInt(txtEncode.Text) Then
                     ' Convert time to UTC
 
                     dtt = DateAdd("h", -1 * CInt(UTCDiff), dtt)

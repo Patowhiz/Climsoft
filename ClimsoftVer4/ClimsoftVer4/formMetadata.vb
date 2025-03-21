@@ -990,7 +990,7 @@ Err:
     Private Sub cmdViewStation_Click(sender As Object, e As EventArgs) Handles cmdViewStation.Click
         dsSourceTableName = "station"
         RecordsView("station")
-
+        'formDataView.btnExport.Enabled = False
     End Sub
     Sub RecordsView(tbl As String)
 
@@ -1002,13 +1002,15 @@ Err:
 
         da.Fill(dstn, tbl)
 
-        formDataView.Show()
-        formDataView.DataGridView.DataSource = dstn
-        formDataView.DataGridView.DataMember = tbl
-        formDataView.DataGridView.Refresh()
-        formDataView.grpSearch.Visible = False
-        formDataView.DataGridView.Dock = DockStyle.Top
-
+        With formDataView
+            formDataView.Show()
+            .DataGridView.DataSource = dstn
+            .DataGridView.DataMember = tbl
+            .DataGridView.Refresh()
+            .grpSearch.Visible = False
+            .DataGridView.Dock = DockStyle.Top
+            .btnExport.Enabled = False
+        End With
     End Sub
 
 
@@ -2299,6 +2301,16 @@ Err:
             MsgBox("Scale value of 0 not allowed")
             'txtScale.Text = ""
         End If
+    End Sub
+
+    Private Sub butpgr_Click(sender As Object, e As EventArgs) Handles butpgr.Click
+        Dim pstgrConstr As String
+
+        pstgrConstr = "server=localhost;database=public;port=3307"
+        pstgrConstr = "Server=localhost;Port=3307;Database=public;UID=postgres;PWD=admin123"
+        pstgrConstr = "postgresql://username:password@host: port/ dbname[?paramspec]"
+        pstgrConstr = "postgresql://postgres:postgrespassword@host.docker.internal: 5432/postgres"
+
     End Sub
 End Class
 Class MetadataVariables

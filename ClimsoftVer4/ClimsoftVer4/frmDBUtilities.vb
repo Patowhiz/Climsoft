@@ -259,7 +259,8 @@ Public Class frmDBUtilities
         frmImportDaily.Setup(frmImportDaily.ImportType.AWSData)
         frmImportDaily.Show()
         frmImportDaily.Text = "AWS Data Import"
-        'frmImportDaily.pnlDbTable.Visible = True
+        frmImportDaily.pnlDbTable.Visible = True
+        frmImportDaily.rbtnFinal.Checked = True
     End Sub
 
 
@@ -291,6 +292,7 @@ Public Class frmDBUtilities
         frmImportDaily.Setup(frmImportDaily.ImportType.Daily)
         frmImportDaily.Show()
         frmImportDaily.Text = "Daily Data Import"
+        frmImportDaily.chkAdjustHH.Visible = False
     End Sub
 
 
@@ -316,6 +318,7 @@ Public Class frmDBUtilities
         frmImportDaily.Setup(frmImportDaily.ImportType.Dekadal)
         frmImportDaily.Show()
         frmImportDaily.Text = "Dekadal Data Import"
+        frmImportDaily.chkAdjustHH.Visible = False
     End Sub
 
     Private Sub DailyToolStripMenuItem1_Click_1(sender As Object, e As EventArgs) Handles DailyToolStripMenuItem1.Click
@@ -324,7 +327,7 @@ Public Class frmDBUtilities
         frmImportDaily.Setup(frmImportDaily.ImportType.ClicomDaily)
         frmImportDaily.Show()
         frmImportDaily.Text = "CLICOM Daily Data Import"
-        'frmImportDaily.cmdLoadData.Enabled = True
+        frmImportDaily.chkAdjustHH.Visible = False
     End Sub
 
     Private Sub SynopToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SynopToolStripMenuItem.Click
@@ -349,5 +352,6 @@ Public Class frmDBUtilities
         frmImportDaily.Setup(frmImportDaily.ImportType.Monthly)
         frmImportDaily.Show()
         frmImportDaily.Text = "Monthly Data Import"
+        frmImportDaily.chkAdjustHH.Visible = False
     End Sub
 End Class

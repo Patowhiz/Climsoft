@@ -771,12 +771,22 @@ Public Class formMetadata
         Dim recCommit As New dataEntryGlobalRoutines
         Try
 
+            If cboElementId.Text = "" Then
+                MsgBox("No record Selected")
+                Exit Sub
+            End If
+
+            If txtScale.Text = "0" Then
+                MsgBox("Scale value of 0 not allowed")
+                Exit Sub
+            End If
+
             dsNewRow = ds.Tables("obselement").NewRow
             dsNewRow.Item("elementId") = cboElementId.Text
             dsNewRow.Item("abbreviation") = txtAbbreviation.Text
             dsNewRow.Item("elementName") = txtName.Text
             dsNewRow.Item("description") = txtDescription.Text
-            dsNewRow.Item("elementScale") = txtScale.Text
+            If txtScale.Text <> "0" Then dsNewRow.Item("elementScale") = txtScale.Text
             dsNewRow.Item("upperLimit") = txtUpperLimit.Text
             dsNewRow.Item("lowerLimit") = txtLowerLimit.Text
             dsNewRow.Item("units") = txtUnit.Text
@@ -818,11 +828,16 @@ Public Class formMetadata
             Exit Sub
         End If
 
+        If txtScale.Text = "0" Then
+            MsgBox("Scale value of 0 not allowed")
+            Exit Sub
+        End If
+
         ds.Tables("obselement").Rows(rec).Item("elementId") = cboElementId.Text
         ds.Tables("obselement").Rows(rec).Item("elementName") = txtName.Text
         ds.Tables("obselement").Rows(rec).Item("abbreviation") = txtAbbreviation.Text
         ds.Tables("obselement").Rows(rec).Item("description") = txtDescription.Text
-        ds.Tables("obselement").Rows(rec).Item("elementScale") = txtScale.Text
+        If txtScale.Text <> "0" Then ds.Tables("obselement").Rows(rec).Item("elementScale") = txtScale.Text
         ds.Tables("obselement").Rows(rec).Item("upperLimit") = txtUpperLimit.Text
         ds.Tables("obselement").Rows(rec).Item("lowerLimit") = txtLowerLimit.Text
         ds.Tables("obselement").Rows(rec).Item("units") = txtUnit.Text
@@ -975,7 +990,7 @@ Err:
     Private Sub cmdViewStation_Click(sender As Object, e As EventArgs) Handles cmdViewStation.Click
         dsSourceTableName = "station"
         RecordsView("station")
-
+        'formDataView.btnExport.Enabled = False
     End Sub
     Sub RecordsView(tbl As String)
 
@@ -987,13 +1002,15 @@ Err:
 
         da.Fill(dstn, tbl)
 
-        formDataView.Show()
-        formDataView.DataGridView.DataSource = dstn
-        formDataView.DataGridView.DataMember = tbl
-        formDataView.DataGridView.Refresh()
-        formDataView.grpSearch.Visible = False
-        formDataView.DataGridView.Dock = DockStyle.Top
-
+        With formDataView
+            formDataView.Show()
+            .DataGridView.DataSource = dstn
+            .DataGridView.DataMember = tbl
+            .DataGridView.Refresh()
+            .grpSearch.Visible = False
+            .DataGridView.Dock = DockStyle.Top
+            .btnExport.Enabled = False
+        End With
     End Sub
 
 
@@ -1112,9 +1129,9 @@ Err:
 
 
 
-        Exit Sub
-Err:
-        MsgBox(Err.Number & " " & Err.Description)
+        'Exit Sub
+        'Err:
+        'MsgBox(Err.Number & " " & Err.Description)
 
     End Sub
 
@@ -1168,6 +1185,7 @@ Err:
             Next
 
         Catch ex As MySql.Data.MySqlClient.MySqlException
+            dbconn.Close()
             MessageBox.Show(ex.Message)
         End Try
     End Sub
@@ -1209,6 +1227,7 @@ Err:
 
 
         Catch ex As MySql.Data.MySqlClient.MySqlException
+            dbconn.Close()
             MessageBox.Show(ex.Message)
         End Try
     End Sub
@@ -1252,6 +1271,7 @@ Err:
             End If
 
         Catch ex As MySql.Data.MySqlClient.MySqlException
+            dbconn.Close()
             MessageBox.Show(ex.Message)
         End Try
     End Sub
@@ -1269,7 +1289,7 @@ Err:
             sql = "SELECT * FROM obselement"
             da = New MySql.Data.MySqlClient.MySqlDataAdapter(sql, dbconn)
             ds.Clear()
-
+            dbconn.Close()
             da.Fill(ds, "obselement")
             maxRows = ds.Tables("obselement").Rows.Count
             For i = 0 To maxRows - 1 Step 1
@@ -1291,6 +1311,7 @@ Err:
             Next
 
         Catch ex As Exception
+            dbconn.Close()
             MsgBox(ex.Message)
         End Try
 
@@ -2176,14 +2197,18 @@ Err:
     End Sub
 
     Function Update_Rec(sq As String) As Boolean
-        dbConnectionString = frmLogin.txtusrpwd.Text
-        dbconn.ConnectionString = dbConnectionString
-        dbconn.Open()
+        'dbConnectionString = frmLogin.txtusrpwd.Text
+        'dbconn.ConnectionString = dbConnectionString
+
+
 
         Try
             Dim objCmd As MySql.Data.MySqlClient.MySqlCommand
 
             ' Create the Command for executing query and set its properties
+
+            dbconn.Open()
+
             objCmd = New MySql.Data.MySqlClient.MySqlCommand(sq, dbconn)
 
             'Execute query
@@ -2191,11 +2216,12 @@ Err:
             'MsgBox("Record Successfully Updated")
 
             dbconn.Close()
-            Update_Rec = True
+            Return True
         Catch ex As Exception
-            MsgBox(ex.Message)
-            Update_Rec = False
             dbconn.Close()
+            MsgBox(ex.Message)
+            Return False
+
         End Try
     End Function
 
@@ -2216,10 +2242,6 @@ Err:
         txtFeatureEdate.Text = txtFeaturedEdate.Text
     End Sub
 
-
-    Private Sub txtfeaturepic_Click(sender As Object, e As EventArgs) Handles pictureBoxFeaturepic.Click
-
-    End Sub
 
     Private Sub txtImageFile_TextChanged(sender As Object, e As EventArgs) Handles txtImageFile.TextChanged
         pictureBoxFeaturepic.ImageLocation = txtImageFile.Text
@@ -2274,7 +2296,22 @@ Err:
         pictureBoxInstrument.Refresh()
     End Sub
 
+    Private Sub txtSeScale_LostFocus(sender As Object, e As EventArgs) Handles txtSeScale.LostFocus
+        If txtScale.Text = "0" Then
+            MsgBox("Scale value of 0 not allowed")
+            'txtScale.Text = ""
+        End If
+    End Sub
 
+    Private Sub butpgr_Click(sender As Object, e As EventArgs) Handles butpgr.Click
+        Dim pstgrConstr As String
+
+        pstgrConstr = "server=localhost;database=public;port=3307"
+        pstgrConstr = "Server=localhost;Port=3307;Database=public;UID=postgres;PWD=admin123"
+        pstgrConstr = "postgresql://username:password@host: port/ dbname[?paramspec]"
+        pstgrConstr = "postgresql://postgres:postgrespassword@host.docker.internal: 5432/postgres"
+
+    End Sub
 End Class
 Class MetadataVariables
     Public seStn, sebdate, Eecode, Iecode As String 'Variables for Station Element

@@ -15,6 +15,8 @@
 ' along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+Imports MySql.Data.MySqlClient
+
 Public Class formDataView
     Dim connStr As String
     Dim Sql, Sql2, userName, id, Nm, cd, yr, mn, dy, hr As String
@@ -41,6 +43,7 @@ Public Class formDataView
                 If Populate_Lists("stationName", dsn) Then
                     For i = 0 To dsn.Tables(dsSourceTableName).Rows.Count - 1
                         cboStName.Items.Add(dsn.Tables(dsSourceTableName).Rows(i).Item(0))
+                        'frmFormsExport.cmbstation.Items.Add(dsn.Tables(dsSourceTableName).Rows(i).Item(0))
                     Next
                 End If
 
@@ -50,6 +53,15 @@ Public Class formDataView
                         cboStnId.Items.Add(dsi.Tables(dsSourceTableName).Rows(i).Item(0).ToString)
                     Next
                 End If
+
+                '' Populate Element Names
+                'If Populate_Lists("elementName", dsi) Then
+                '    'MsgBox(dsi.Tables(dsSourceTableName).Rows.Count)
+                '    For i = 0 To dsi.Tables(dsSourceTableName).Rows.Count - 1
+                '        'MsgBox(dsi.Tables(dsSourceTableName).Rows(i).Item(0).ToString)
+                '        frmFormsExport.cmbElement.Items.Add(dsi.Tables(dsSourceTableName).Rows(i).Item(0).ToString)
+                '    Next
+                'End If
 
                 'Populate Station Years
                 If Populate_Lists("yyyy", dsy) Then
@@ -108,10 +120,49 @@ Public Class formDataView
     End Sub
 
     Private Sub cmdImport_Click(sender As Object, e As EventArgs) Handles cmdImport.Click
+
+        'Dim importFile As String
+
+        'Try
+
+        '    dlgImportFile.Filter = "Form Import file|*.*"
+        '    dlgImportFile.Title = ClsTranslations.GetTranslation("Open Import File")
+        '    dlgImportFile.FileName = dsSourceTableName
+        '    dlgImportFile.ShowDialog()
+
+        '    If InStr(dlgImportFile.FileName, dsSourceTableName) = 0 Then
+        '        MsgBox(ClsTranslations.GetTranslation("The selected import file name does not match the opened form: ") & dsSourceTableName & ClsTranslations.GetTranslation(". Please confirm!"))
+        '        Exit Sub
+        '    End If
+
+        '    'Convert Import file path seperators to SQL style
+        '    importFile = Strings.Left(dlgImportFile.FileName, 1)
+        '    For i = 2 To Len(dlgImportFile.FileName) - 1
+        '        If Strings.Mid(dlgImportFile.FileName, i, 1) = "\" Then
+        '            importFile = importFile & "/"
+        '        Else
+        '            importFile = importFile & Strings.Mid(dlgImportFile.FileName, i, 1)
+        '        End If
+        '    Next
+        '    importFile = importFile & Strings.Right(dlgImportFile.FileName, 1)
+
+        '    ' Execute import file function
+        '    If Not CommonModules.Load_Files(importFile, dsSourceTableName, 1, ",") Then
+        '        MsgBox("Can't Import " & importFile)
+        '        Exit Sub
+        '    End If
+        '    MsgBox("File '" & dlgImportFile.FileName & ClsTranslations.GetTranslation("' Successfully Imported"))
+
+        'Catch ex As Exception
+        '    MsgBox(ex.Message)
+        'End Try
+
+
+
         Dim tblhdr, x, importFile As String
         Try
             connStr = frmLogin.txtusrpwd.Text
-            conn.ConnectionString = connStr
+            conn.ConnectionString = connStr & ";AllowLoadLocalInfile=true "
             conn.Open()
 
             Sql = "SELECT * FROM " & dsSourceTableName & ";"
@@ -185,6 +236,10 @@ Public Class formDataView
         'Sql = "Select * FROM  " & dsSourceTableName & ";"
         RefreshRecords.viewTableRecords("Select * FROM  " & dsSourceTableName & ";")
 
+    End Sub
+
+    Private Sub btnExport_Click(sender As Object, e As EventArgs) Handles btnExport.Click
+        frmFormsExport.Show()
     End Sub
 
     Private Sub cboStnId_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboStnId.SelectedIndexChanged
@@ -302,7 +357,7 @@ Public Class formDataView
 
             If Strings.Len(Sql) > 0 Then
                 connStr = frmLogin.txtusrpwd.Text
-                conn.ConnectionString = connStr
+                conn.ConnectionString = connStr & ";Convert Zero Datetime=True;AllowLoadLocalInfile=true"
                 'Open connection to database
                 conn.Open()
 
@@ -443,7 +498,7 @@ Public Class formDataView
 
             If Strings.Len(Sql) > 0 Then
                 connStr = frmLogin.txtusrpwd.Text
-                conn.ConnectionString = connStr
+                conn.ConnectionString = connStr & ";Convert Zero Datetime=True;AllowLoadLocalInfile=true"
                 conn.Open()
 
                 'Execute SQL command
@@ -473,14 +528,10 @@ Public Class formDataView
 
         Try
             connStr = frmLogin.txtusrpwd.Text
-            conn.ConnectionString = connStr
+            conn.ConnectionString = connStr & ";Convert Zero Datetime=True;AllowLoadLocalInfile=true"
             conn.Open()
 
-            'hdr = DataGridView.Columns(0).Name
 
-            'For i = 1 To DataGridView.ColumnCount - 1
-            '    hdr = hdr & "," & DataGridView.Columns(i).Name
-            'Next
 
             'MsgBox(System.IO.Path.GetFullPath(Application.CommonAppDataPath))
             'exportfile = System.IO.Path.GetFullPath(Application.StartupPath) & "\data\" & dsSourceTableName & ".csv"
@@ -502,7 +553,13 @@ Public Class formDataView
 
             FileOpen(111, x, OpenMode.Output)
 
-            ''PrintLine(111, hdr)
+            'hdr = DataGridView.Columns(0).Name
+
+            'For i = 1 To DataGridView.ColumnCount - 1
+            '    hdr = hdr & "," & DataGridView.Columns(i).Name
+            'Next
+            'PrintLine(111, hdr)
+
             'FileClose(111)
 
             Sql = "Select * from " & dsSourceTableName & ";"
@@ -518,7 +575,8 @@ Public Class formDataView
                 dat = ds1.Tables(dsSourceTableName).Rows(i).Item(0)
                 For j = 1 To ds1.Tables(dsSourceTableName).Columns.Count - 1
                     If IsDBNull(ds1.Tables(dsSourceTableName).Rows(i).Item(j)) Then
-                        CellValue = "\N" '""
+                        CellValue = Chr(0) '"\N" '""
+
                         'dat = dat & "," & "\N"
                     Else
                         CellValue = ds1.Tables(dsSourceTableName).Rows(i).Item(j)
@@ -757,6 +815,8 @@ Public Class formDataView
                     Sql = "Select stationName FROM  " & dsSourceTableName & " INNER JOIN station On " & dsSourceTableName & ".stationId = station.stationId GROUP BY stationName ORDER BY stationName;"
                 Case "stationId"
                     Sql = "SELECT stationId FROM  " & dsSourceTableName & " GROUP BY stationId ORDER BY stationId;"
+                'Case "elementName"
+                '    Sql = "SELECT elementName FROM " & dsSourceTableName & " INNER JOIN obselement ON obselement.elementId =  " & dsSourceTableName & ".elementId GROUP BY elementName order BY elementName;"
                 Case "yyyy"
                     Sql = "SELECT yyyy FROM  " & dsSourceTableName & " GROUP BY yyyy ORDER BY yyyy;"
                 Case "mm"
@@ -764,21 +824,21 @@ Public Class formDataView
             End Select
 
             connStr = frmLogin.txtusrpwd.Text
-            conn.ConnectionString = connStr
+            conn.ConnectionString = connStr & ";Convert Zero Datetime=True;AllowLoadLocalInfile=true"
             conn.Open()
 
             Dim daa = New MySql.Data.MySqlClient.MySqlDataAdapter(Sql, conn)
             dss.Clear()
             daa.Fill(dss, dsSourceTableName)
-            conn.Close()
 
+            'MsgBox(dss.Tables(dsSourceTableName).Rows.Count)
             'MsgBox(dss.Tables(dsSourceTableName).Rows(0).Item(0))
-
+            conn.Close()
             Return True
 
         Catch x As Exception
-            MsgBox(x.Message)
             conn.Close()
+            'MsgBox(x.Message & " at Populate_Lists")
             Return False
         End Try
     End Function

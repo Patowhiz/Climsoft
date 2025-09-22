@@ -58,7 +58,7 @@ Public Class frmMainMenu
                     mnuAdministration.Enabled = False
                     mnuTools.Enabled = False
                     mnuProducts.Enabled = False
-                    btnMainDataTransfer.Enabled = False
+                    'btnMainDataTransfer.Enabled = False
                     btnMainSettingsAWS.Enabled = False
                     btnMainUserManagement.Enabled = False
                     btnMainProducts.Enabled = False
@@ -363,7 +363,7 @@ Public Class frmMainMenu
             sqlFile = frmImportDaily.dlgOpenImportFile.FileName
             sqlText = IO.File.ReadAllText(sqlFile)
             sqlStatements = Strings.Split(sqlText, ";")
-            sqlconn.ConnectionString = frmLogin.txtusrpwd.Text
+            sqlconn.ConnectionString = frmLogin.txtusrpwd.Text & ";Convert Zero Datetime=True;AllowLoadLocalInfile=true"
             sqlconn.Open()
             Me.Cursor = Cursors.WaitCursor
         Catch ex As Exception
@@ -405,5 +405,9 @@ Public Class frmMainMenu
 
     Private Sub mnuHelpAbout_Click(sender As Object, e As EventArgs) Handles mnuHelpAbout.Click
         Help.ShowHelp(Me, Application.StartupPath & "\climsoft4.chm", "aboutclimsoft4.htm")
+    End Sub
+
+    Private Sub verTlStripMenuItem_Click(sender As Object, e As EventArgs) Handles verTlStripMenuItem.Click
+        MsgBox("Climsft " & frmSplashScreen.lblVersion.Text,, "Version Details")
     End Sub
 End Class
